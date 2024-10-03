@@ -7,38 +7,53 @@ void ParseAndPrintStat(const TransportCatalogue& tansport_catalogue, std::string
     std::string_view req = request.substr(request.find_first_of(' ') + 1);
     if (com == "Bus")
     {
-        TransportCatalogue::Stats stat;        
-        if (!tansport_catalogue.ShowStat(req, &stat))
+        reader::PrintBuses(tansport_catalogue, req, output);
+    }
+    if (com == "Stop")
+    {
+        reader::PrintStops(tansport_catalogue, req, output);
+    }
+} 
+
+namespace reader
+{
+    void PrintBuses(const TransportCatalogue& tansport_catalogue, std::string_view request,
+        std::ostream& output)
+    {
+        std::optional<Stats> stat = tansport_catalogue.GetStat(request);
+        if (!stat.has_value())
         {
             output << request << ": not found" << std::endl;
         }
         else
         {
-            output << request << ": " << stat.stops << " stops on route, " << stat.unique_stops << " unique stops, " << std::setprecision(6) << stat.dist << " route length" << std::endl;
+            output << request << ": " << stat.value().stops << " stops on route, " << stat.value().unique_stops << " unique stops, " << std::setprecision(6) << stat.value().dist << " route length" << std::endl;
         }
     }
-    if (com == "Stop")
+
+    void PrintStops(const TransportCatalogue& tansport_catalogue, std::string_view request,
+        std::ostream& output)
     {
-        const std::set<std::string_view>* buses  = nullptr;
-        if (!tansport_catalogue.ShowStop(req, &buses))
+        const std::set<std::string_view>* buses = tansport_catalogue.GetBusesWithStop(request);
+        if (buses == nullptr)
         {
-            output << request << ": not found" << std::endl;            
+            output << request << ": not found" << std::endl;
         }
         else
-        {          
+        {
             if (buses->empty())
-            {                
+            {
                 output << request << ": no buses" << std::endl;
             }
             else
             {
                 output << request << ": buses";
                 for (auto bus : *buses)
-                {                    
+                {
                     output << " " << bus;
                 }
                 output << std::endl;
             }
         }
     }
-} 
+}
