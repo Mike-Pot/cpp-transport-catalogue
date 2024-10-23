@@ -29,6 +29,7 @@ namespace catalogue
 		int stops;
 		int unique_stops;
 		double dist;
+		double curv;
 	};
 }
 
@@ -40,13 +41,23 @@ public:
 	TransportCatalogue() = default;
 	void AddStop(const std::string& stop_name, geo::Coordinates coor);	
 	void AddRoute(const std::string& bus_num, const std::vector<std::string_view>& route);
+	void AddStopsDist(const std::string& stop_from, const std::string& stop_to, double dist);
 	std::optional<Stats> GetStat(std::string_view bus) const;
 	const std::set<std::string_view>* GetBusesWithStop(std::string_view stop) const;
+	
 	
 private:	
 	std::deque<Bus_> buses_;
 	std::deque<Stop_> stops_;	
 	std::unordered_map<std::string_view, Bus_*> bus_route_key_;
 	std::unordered_map<std::string_view, Stop_*> stop_name_key_;
-	std::unordered_map<Stop_*, std::set<std::string_view>> stops_routes_;	
+	std::unordered_map<Stop_*, std::set<std::string_view>> stops_routes_;
+	struct hasher_stops_
+	{
+		size_t operator()(const std::pair<Stop_*, Stop_*>& p) const 
+		{
+			return std::hash<const void*>{}(p.first) ^ std::hash<const void*>{}(p.second);
+		}
+	};
+	std::unordered_map < std::pair<Stop_*, Stop_*>, double, hasher_stops_> stop_dist_;
 };
