@@ -8,6 +8,7 @@
  */
 namespace reader
 {
+    /*
     geo::Coordinates ParseCoordinates(std::string_view str) {
         static const double nan = std::nan("");
 
@@ -25,7 +26,7 @@ namespace reader
 
         return { lat, lng };
     }
-
+    */
     /**
      * Удаляет пробелы в начале и конце строки
      */
@@ -42,19 +43,17 @@ namespace reader
      */
     std::vector<std::string_view> Split(std::string_view string, char delim) {
         std::vector<std::string_view> result;
-
         size_t pos = 0;
         while ((pos = string.find_first_not_of(' ', pos)) < string.length()) {
-            auto delim_pos = string.find(delim, pos);
+            auto delim_pos = string.find(delim, pos);            
             if (delim_pos == string.npos) {
                 delim_pos = string.size();
-            }
+            }            
             if (auto substr = Trim(string.substr(pos, delim_pos - pos)); !substr.empty()) {
-                result.push_back(substr);
-            }
+                result.push_back(substr);               
+            }            
             pos = delim_pos + 1;
-        }
-
+        }        
         return result;
     }
 
@@ -94,13 +93,15 @@ namespace reader
         return { std::string(line.substr(0, space_pos)),
                 std::string(line.substr(not_space, colon_pos - not_space)),
                 std::string(line.substr(colon_pos + 1)) };
-    }
+    }    
 }
+
 void InputReader::ParseLine(std::string_view line) {
     auto command_description = reader::ParseCommandDescription(line);
     if (command_description) {
         commands_.push_back(std::move(command_description));
-    }    
+    } 
+    
 }
 
 void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue& catalogue) const
@@ -108,10 +109,26 @@ void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue& catalogue) 
     for (auto com : commands_)
     {
         if (com.command == "Stop")
-        {           
-            catalogue.AddStop(com.id, reader::ParseCoordinates(com.description));
+        {
+            auto desc = reader::Split(com.description, ',');      
+            catalogue.AddStop(com.id, { std::stod(std::string(desc[0])),std::stod(std::string(desc[1])) });           
         }
     }
+
+    for (auto com : commands_)
+    {
+        if (com.command == "Stop")
+        {
+            auto desc = reader::Split(com.description, ',');
+            for (auto it = desc.begin() + 2; it < desc.end(); it++)
+            {               
+                catalogue.AddStopsDist(com.id,
+                    std::string(it->substr(it->find("to") + 3)),
+                    std::stod(std::string(it->substr(0, it->find("to") - 2))));
+            }
+        }
+    }
+
     for (auto com : commands_)
     {
         if (com.command == "Bus")
