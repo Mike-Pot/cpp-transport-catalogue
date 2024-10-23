@@ -23,11 +23,14 @@ namespace reader
         std::optional<Stats> stat = tansport_catalogue.GetStat(request);
         if (!stat.has_value())
         {
-            output << request << ": not found" << std::endl;
+            output << "Bus " << request << ": not found" << std::endl;
         }
         else
         {
-            output << request << ": " << stat.value().stops << " stops on route, " << stat.value().unique_stops << " unique stops, " << std::setprecision(6) << stat.value().dist << " route length" << std::endl;
+            output << "Bus " << request << ": " << stat.value().stops << " stops on route, " 
+                << stat.value().unique_stops << " unique stops, "
+                << std::setprecision(6) << stat.value().dist << " route length, "
+                << stat.value().curv << " curvature" << std::endl;
         }
     }
 
@@ -37,17 +40,17 @@ namespace reader
         const std::set<std::string_view>* buses = tansport_catalogue.GetBusesWithStop(request);
         if (buses == nullptr)
         {
-            output << request << ": not found" << std::endl;
+            output << "Stop " << request << ": not found" << std::endl;
         }
         else
         {
             if (buses->empty())
             {
-                output << request << ": no buses" << std::endl;
+                output << "Stop " << request << ": no buses" << std::endl;
             }
             else
             {
-                output << request << ": buses";
+                output << "Stop " << request << ": buses";
                 for (auto bus : *buses)
                 {
                     output << " " << bus;
