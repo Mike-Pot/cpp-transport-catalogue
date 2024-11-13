@@ -1,4 +1,5 @@
 #pragma once
+
 #include <unordered_map>
 #include <unordered_set>
 #include <deque>
@@ -8,56 +9,54 @@
 #include <utility>
 #include <set>
 #include <optional>
-#include "geo.h"
+#include "domain.h"
 
 namespace catalogue
 {
-	struct Stop_
-	{
-		std::string name;
-		geo::Coordinates coord;
-	};
+	using ROUTES = std::set<std::string_view>;
+	using STOP_PAIR = std::pair<const Stop_*, const Stop_*>;
 
-	struct Bus_
+	class TransportCatalogue
 	{
-		std::string num;
-		std::vector<Stop_*> route;
-	};
+	public:
+		TransportCatalogue() = default;
+		void AddStop(const std::string& stop_name, geo::Coordinates coor);
+		void AddRoute(const std::string& bus_num, const std::vector<std::string>& route, bool is_round);
+		void AddStopsDist(const std::string& stop_from, const std::string& stop_to, double dist);
+		std::optional<const Bus_*> GetBusInfo(std::string_view bus) const;
+		std::optional<const Stop_*> GetStopInfo(std::string_view stop) const;
+		const ROUTES* GetStopRoutes(const Stop_* stop) const;
+		std::optional<double> GetStopsDist(STOP_PAIR stops) const;
+		BUSES GetAllBuses(bool not_empty) const;
+		STOPS GetAllStops(bool not_empty) const;
 
-	struct Stats
-	{
-		int stops;
-		int unique_stops;
-		double dist;
-		double curv;
-	};
-}
-
-using namespace catalogue;
-
-class TransportCatalogue
-{	
-public:		
-	TransportCatalogue() = default;
-	void AddStop(const std::string& stop_name, geo::Coordinates coor);	
-	void AddRoute(const std::string& bus_num, const std::vector<std::string_view>& route);
-	void AddStopsDist(const std::string& stop_from, const std::string& stop_to, double dist);
-	std::optional<Stats> GetStat(std::string_view bus) const;
-	const std::set<std::string_view>* GetBusesWithStop(std::string_view stop) const;
-	
-	
-private:	
-	std::deque<Bus_> buses_;
-	std::deque<Stop_> stops_;	
-	std::unordered_map<std::string_view, Bus_*> bus_route_key_;
-	std::unordered_map<std::string_view, Stop_*> stop_name_key_;
-	std::unordered_map<Stop_*, std::set<std::string_view>> stops_routes_;
-	struct hasher_stops_
-	{
-		size_t operator()(const std::pair<Stop_*, Stop_*>& p) const 
+	private:
+		std::deque<Bus_> buses_;
+		std::deque<Stop_> stops_;
+		std::unordered_map<std::string_view, const Bus_*> bus_route_key_;
+		std::unordered_map<std::string_view, const Stop_*> stop_name_key_;
+		std::unordered_map<const Stop_*, ROUTES> stops_routes_;
+		struct hasher_stops_
 		{
-			return std::hash<const void*>{}(p.first) ^ std::hash<const void*>{}(p.second);
+			size_t operator()(const STOP_PAIR& p) const
+			{
+				return std::hash<const void*>{}(p.first) ^ std::hash<const void*>{}(p.second);
+			}
+		};
+		std::unordered_map <STOP_PAIR, double, hasher_stops_> stop_dist_;
+
+		template<typename Key, typename Val, typename Hasher>
+		std::optional<Val> GetInfo(const std::unordered_map<Key, Val, Hasher>& where, Key what) const
+		{
+			auto it = where.find(what);
+			if (it != where.end())
+			{
+				return it->second;
+			}
+			else
+			{
+				return std::nullopt;
+			}
 		}
 	};
-	std::unordered_map < std::pair<Stop_*, Stop_*>, double, hasher_stops_> stop_dist_;
-};
+}
