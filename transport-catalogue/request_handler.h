@@ -13,7 +13,6 @@ public:
     svg::Document RenderMap() const;
 
 private:    
-    catalogue::STOPS MakeFullRoute(const catalogue::Bus_* bus) const;
     const catalogue::TransportCatalogue& db_;
     const renderer::MapRenderer& renderer_;
 };

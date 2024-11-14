@@ -1,10 +1,12 @@
 #pragma once
 #include "svg.h"
 #include "geo.h"
+#include "domain.h"
 #include <algorithm>
 
 namespace renderer
-{   
+{  
+    /*
     inline struct MapSettings
     {
         double width = 0;
@@ -12,10 +14,13 @@ namespace renderer
         double padding = 0;
         size_t num_cols = 0;
     } map_sets;
-
+    */
     struct DrawSettings
     {
-        
+        double width = 0;
+        double height = 0;
+        double padding = 0;
+        size_t num_cols = 0;
         double line_width = 0;
         double stop_radius = 0;
         int bus_label_font_size = 0;
@@ -110,14 +115,15 @@ namespace renderer
     class MapRenderer
     {        
     public:
-        MapRenderer() = default;        
-        void PutRenderSettings(DrawSettings& rend_sets);
+        MapRenderer() = default;
+        svg::Document RenderMap(const catalogue::BUSES& all_buses, const catalogue::STOPS& all_stops) const;
+        void PutRenderSettings(DrawSettings& rend_sets);        
+        ~MapRenderer();
+    private:
         void AddRouteToMap(svg::Document& map_, std::vector<svg::Point>& points, size_t curr_col) const;
-        void AddRouteNameToMap(svg::Document& map_, std::string name, size_t color, svg::Point coor) const;  
+        void AddRouteNameToMap(svg::Document& map_, std::string name, size_t color, svg::Point coor) const;
         void AddStopToMap(svg::Document& map_, svg::Point coor) const;
         void AddStopNameToMap(svg::Document& map_, std::string name, svg::Point coor) const;
-        ~MapRenderer();
-    private:     
-        DrawSettings draw_sets_;
+        DrawSettings draw_sets_;      
     };    
 }

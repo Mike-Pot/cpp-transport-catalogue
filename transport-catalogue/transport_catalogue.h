@@ -25,10 +25,11 @@ namespace catalogue
 		void AddStopsDist(const std::string& stop_from, const std::string& stop_to, double dist);
 		std::optional<const Bus_*> GetBusInfo(std::string_view bus) const;
 		std::optional<const Stop_*> GetStopInfo(std::string_view stop) const;
-		const ROUTES* GetStopRoutes(const Stop_* stop) const;
-		std::optional<double> GetStopsDist(STOP_PAIR stops) const;
+		const ROUTES* GetStopRoutes(const Stop_* stop) const;		
 		BUSES GetAllBuses(bool not_empty) const;
 		STOPS GetAllStops(bool not_empty) const;
+		std::optional<catalogue::Stats> GetStat(const std::string& bus_name) const;
+		std::optional<double> GetStopsDist(STOP_PAIR stops) const;
 
 	private:
 		std::deque<Bus_> buses_;
@@ -57,6 +58,6 @@ namespace catalogue
 			{
 				return std::nullopt;
 			}
-		}
+		}		
 	};
 }

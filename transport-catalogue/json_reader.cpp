@@ -129,15 +129,15 @@ void JsonReader::GetRenderSettings(renderer::MapRenderer& map_rend)
 	{
 		if (Key == "width")
 		{
-			map_sets.width = Val.AsDouble();
+			rend_sets.width = Val.AsDouble();
 		}
 		if (Key == "height")
 		{
-			map_sets.height = Val.AsDouble();
+			rend_sets.height = Val.AsDouble();
 		}
 		if (Key == "padding")
 		{
-			map_sets.padding = Val.AsDouble();
+			rend_sets.padding = Val.AsDouble();
 		}
 		if (Key == "line_width")
 		{
@@ -182,7 +182,7 @@ void JsonReader::GetRenderSettings(renderer::MapRenderer& map_rend)
 				parsed_cols[i] = ParseColor(cols[i]);
 			}
 			rend_sets.color_palette = parsed_cols;
-			map_sets.num_cols = cols.size();
+			rend_sets.num_cols = cols.size();
 		}
 	};
 

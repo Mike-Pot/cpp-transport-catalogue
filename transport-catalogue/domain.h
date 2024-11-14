@@ -28,4 +28,6 @@ namespace catalogue
 		double dist;
 		double curv;
 	};
+
+	STOPS MakeFullRoute(const Bus_* bus);
 }

@@ -32,14 +32,17 @@ namespace catalogue
 	{
 		return GetInfo(bus_route_key_, bus);
 	}
+
 	std::optional<const Stop_*> TransportCatalogue::GetStopInfo(std::string_view stop) const
 	{
 		return GetInfo(stop_name_key_, stop);
 	}
+
 	const ROUTES* TransportCatalogue::GetStopRoutes(const Stop_* stop) const
 	{
 		return &stops_routes_.at(stop);
 	}
+
 	std::optional<double> TransportCatalogue::GetStopsDist(STOP_PAIR stops) const
 	{
 		return GetInfo(stop_dist_, stops);
@@ -57,6 +60,7 @@ namespace catalogue
 		}
 		return std::move(buses);
 	}
+
 	STOPS TransportCatalogue::GetAllStops(bool not_empty = false) const
 	{
 		STOPS stops;
@@ -69,4 +73,40 @@ namespace catalogue
 		}
 		return std::move(stops);
 	}
+
+	std::optional<Stats> TransportCatalogue::GetStat(const std::string& bus_name) const
+	{		
+		auto bus = GetBusInfo(bus_name);
+
+		if (bus)
+		{
+			STOPS stops = MakeFullRoute(*bus);
+			int all_stops = stops.size();
+
+			std::unordered_set<const Stop_*> uniques;
+			uniques.insert(stops.begin(), stops.end());
+			int unq_stops = uniques.size();
+
+			double dist_fly = 0;
+			double dist_ride = 0;
+			for (int i = 0; i < stops.size() - 1; i++)
+			{
+				dist_fly += geo::ComputeDistance(stops[i]->coord, stops[i + 1]->coord);
+				auto dist = GetStopsDist({ stops[i],stops[i + 1] });
+				if (dist)
+				{
+					dist_ride += *dist;
+				}
+				else
+				{
+					dist_ride += stop_dist_.at({ stops[i + 1],stops[i] });
+				}
+			}
+			return Stats{ all_stops,unq_stops,dist_ride,dist_ride / dist_fly };
+		}
+		else
+		{
+			return std::nullopt;
+		}
+	}	
 }
