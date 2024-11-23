@@ -15,16 +15,16 @@ namespace json
 
 	ArrCntxt& Builder::StartArray()
 	{
-		cntxt.push_back(2);		
+		cntxt.push_back(State::ARR);		
 		nodes_.push_back(nullptr);
 		return (ArrCntxt&)err_catcher_;
 	}
 
 	Builder& Builder::EndArray()
 	{		
-		if (cntxt.empty() || cntxt.back() != 2)
+		if (cntxt.empty() || cntxt.back() != State::ARR)
 		{
-			throw std::logic_error("");
+			throw std::logic_error("EndArray called in wrong context");
 		}
 		cntxt.pop_back();
 		Array arr{};
@@ -44,16 +44,16 @@ namespace json
 
 	DictCntxt& Builder::StartDict()
 	{
-		cntxt.push_back(1);		
+		cntxt.push_back(State::DICT);		
 		nodes_.push_back(nullptr);
 		return (DictCntxt&)err_catcher_;
 	}
 
 	Builder& Builder::EndDict()
 	{
-		if (cntxt.empty() || cntxt.back() != 1)
+		if (cntxt.empty() || cntxt.back() != State::DICT)
 		{
-			throw std::logic_error("");
+			throw std::logic_error("EndDict called in wrong context");
 		}
 		cntxt.pop_back();
 		Dict dict{};
@@ -78,7 +78,7 @@ namespace json
 	{
 		if (nodes_.size() != 1)
 		{
-			throw std::logic_error("Build call for unready node");
+			throw std::logic_error("Build called for unready node");
 		}
 		return std::move(*nodes_.back());
 	}
