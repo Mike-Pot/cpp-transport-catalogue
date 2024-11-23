@@ -38,7 +38,8 @@ namespace json
 		}
 		ErrCatcher err_catcher_;
 		std::vector<Node*> nodes_;
-		std::vector<int> cntxt;
+		enum class State { ARR, DICT };
+		std::vector<State> cntxt;
 	};
 
 	class Starter : public ErrCatcher
