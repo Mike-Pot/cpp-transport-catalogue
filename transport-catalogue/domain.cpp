@@ -11,6 +11,6 @@ namespace catalogue
 				res.push_back(*it);
 			}
 		}
-		return std::move(res);
+		return res;
 	}
 }

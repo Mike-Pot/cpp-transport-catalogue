@@ -3,6 +3,7 @@
 #include "transport_catalogue.h"
 #include "map_renderer.h"
 #include "request_handler.h"
+#include "json_builder.h"
 
 using namespace json;
 class JsonReader
@@ -20,7 +21,7 @@ private:
 	{
 		for (const auto& node : array)
 		{
-			func(node.AsMap());
+			func(node.AsDict());
 		}
 	}
 

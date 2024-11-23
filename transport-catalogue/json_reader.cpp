@@ -17,7 +17,7 @@ void JsonReader::LoadDB(catalogue::TransportCatalogue& cat)
 		if (stop.at("type").AsString() == "Stop")
 		{
 			auto stop_from = stop.at("name").AsString();
-			ParseMap(stop.at("road_distances").AsMap(),
+			ParseMap(stop.at("road_distances").AsDict(),
 				[&cat,stop_from, *this](std::string stop_to, const Node& dist)
 			{
 					cat.AddStopsDist(stop_from,
@@ -40,7 +40,7 @@ void JsonReader::LoadDB(catalogue::TransportCatalogue& cat)
 		}
 	};
 
-	const Array& req = doc_.GetRoot().AsMap().at("base_requests").AsArray();
+	const Array& req = doc_.GetRoot().AsDict().at("base_requests").AsArray();
 	ParseArrayMaps(req, add_stop);
 	ParseArrayMaps(req, add_stop_dists);
 	ParseArrayMaps(req, add_bus);
@@ -48,26 +48,31 @@ void JsonReader::LoadDB(catalogue::TransportCatalogue& cat)
 
 void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 {	
-	Array ans;
+	Builder builder{};
+	auto& ans = builder.StartArray();
 	std::string err_mes = "not found";
 	auto add_bus = [&](const Dict& bus, int id)
 	{
 		auto stat = handler.GetStat(bus.at("name").AsString());
 		
 		if (stat)
-		{
-			ans.push_back({ {
-				{"request_id",id},
-				{"stop_count",stat->stops},
-				{"unique_stop_count",stat->unique_stops},
-				{"route_length",stat->dist},
-				{"curvature",stat->curv} } });
+		{			
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("stop_count").Value(stat->stops)
+				.Key("unique_stop_count").Value(stat->unique_stops)
+				.Key("route_length").Value(stat->dist)
+				.Key("curvature").Value(stat->curv)
+				.EndDict()
+				.Build().AsDict());				
 		}
 		else
-		{
-			ans.push_back({ {
-				{"request_id",id},
-				{"error_message",err_mes} } });
+		{			
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("error_message").Value(err_mes)
+				.EndDict()
+				.Build().AsDict());			
 		}	
 	};
 
@@ -76,21 +81,26 @@ void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 		auto buses = handler.GetBusesWithStop(stop.at("name").AsString());
 
 		if (buses)
-		{
-			Array route;
+		{			
+			Builder builder{};
+			auto& route = builder.StartArray();
 			for (auto bus : **buses)
 			{
-				route.push_back(std::string(bus));
-			}
-			ans.push_back({ {
-				{"request_id",id},
-				{"buses",route} } });
+				route.Value(std::string(bus));				
+			}			
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("buses").Value(route.EndArray().Build().AsArray())
+				.EndDict()
+				.Build().AsDict());			
 		}
 		else
 		{			
-			ans.push_back({ {
-				{"request_id",id},
-				{"error_message",err_mes} } });
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("error_message").Value(err_mes)
+				.EndDict()
+				.Build().AsDict());			
 		}
 	};
 
@@ -98,13 +108,14 @@ void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 	{
 		int req_id = req_el.at("id").AsInt();				
 		if (req_el.at("type").AsString() == "Map")
-		{
-			svg::Document map = handler.RenderMap();
+		{			
 			std::ostringstream out;
-			map.Render(out);
-			ans.push_back({ {
-				{"request_id",req_id},
-				{"map",out.str()} } });
+			handler.RenderMap().Render(out);			
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(req_id)
+				.Key("map").Value(out.str())
+				.EndDict()
+				.Build().AsDict());			
 		}
 		if (req_el.at("type").AsString() == "Bus")
 		{
@@ -116,8 +127,8 @@ void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 		}
 	};
 	
-	ParseArrayMaps(doc_.GetRoot().AsMap().at("stat_requests").AsArray(), add_ans_el);
-	Print(Document{ ans }, out);
+	ParseArrayMaps(doc_.GetRoot().AsDict().at("stat_requests").AsArray(), add_ans_el);
+	Print(Document{ ans.EndArray().Build() }, out);
 }
 
 void JsonReader::GetRenderSettings(renderer::MapRenderer& map_rend)
@@ -186,7 +197,7 @@ void JsonReader::GetRenderSettings(renderer::MapRenderer& map_rend)
 		}
 	};
 
-	ParseMap(doc_.GetRoot().AsMap().at("render_settings").AsMap(), set_renders);
+	ParseMap(doc_.GetRoot().AsDict().at("render_settings").AsDict(), set_renders);
 	map_rend.PutRenderSettings(rend_sets);
 }
 

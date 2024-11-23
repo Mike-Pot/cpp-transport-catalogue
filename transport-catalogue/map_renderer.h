@@ -5,16 +5,7 @@
 #include <algorithm>
 
 namespace renderer
-{  
-    /*
-    inline struct MapSettings
-    {
-        double width = 0;
-        double height = 0;
-        double padding = 0;
-        size_t num_cols = 0;
-    } map_sets;
-    */
+{     
     struct DrawSettings
     {
         double width = 0;

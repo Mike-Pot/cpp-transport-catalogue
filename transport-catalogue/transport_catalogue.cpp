@@ -58,7 +58,7 @@ namespace catalogue
 				buses.push_back(bus.second);
 			}
 		}
-		return std::move(buses);
+		return buses;
 	}
 
 	STOPS TransportCatalogue::GetAllStops(bool not_empty = false) const
@@ -71,7 +71,7 @@ namespace catalogue
 				stops.push_back(stop.second);
 			}
 		}
-		return std::move(stops);
+		return stops;
 	}
 
 	std::optional<Stats> TransportCatalogue::GetStat(const std::string& bus_name) const
@@ -89,7 +89,7 @@ namespace catalogue
 
 			double dist_fly = 0;
 			double dist_ride = 0;
-			for (int i = 0; i < stops.size() - 1; i++)
+			for (size_t i = 0; i < stops.size() - 1; i++)
 			{
 				dist_fly += geo::ComputeDistance(stops[i]->coord, stops[i + 1]->coord);
 				auto dist = GetStopsDist({ stops[i],stops[i + 1] });
