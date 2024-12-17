@@ -48,6 +48,7 @@ void JsonReader::LoadDB(catalogue::TransportCatalogue& cat)
 
 void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 {	
+	using namespace catalogue;
 	Builder builder{};
 	auto& ans = builder.StartArray();
 	std::string err_mes = "not found";
@@ -104,6 +105,52 @@ void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 		}
 	};
 
+	auto add_route = [&](const Dict& route, int id)
+	{
+		auto ideal_route = handler.GetIdealRoute(route.at("from").AsString(), route.at("to").AsString());
+		if (ideal_route)
+		{
+			Builder builder{};
+			auto& items = builder.StartArray();
+			for (auto route_item : ideal_route->second)
+			{
+				if (route_item.span)
+				{
+					items.Value(Builder{}.StartDict()
+						.Key("time").Value(route_item.time)
+						.Key("type").Value("Bus")
+						.Key("bus").Value(route_item.bus_stop)
+						.Key("span_count").Value((int)route_item.span)
+						.EndDict()
+						.Build().AsDict());
+				}
+				else
+				{
+					items.Value(Builder{}.StartDict()
+						.Key("time").Value(route_item.time)
+						.Key("type").Value("Wait")
+						.Key("stop_name").Value(route_item.bus_stop)
+						.EndDict()
+						.Build().AsDict());
+				}
+			}
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("total_time").Value(ideal_route->first)
+				.Key("items").Value(items.EndArray().Build().AsArray())
+				.EndDict()
+				.Build().AsDict());
+		}
+		else
+		{
+			ans.Value(Builder{}.StartDict()
+				.Key("request_id").Value(id)
+				.Key("error_message").Value(err_mes)
+				.EndDict()
+				.Build().AsDict());
+		}
+	};
+
 	auto add_ans_el = [&](const Dict& req_el)
 	{
 		int req_id = req_el.at("id").AsInt();				
@@ -124,6 +171,10 @@ void JsonReader::PrintDB(const RequestHandler& handler, std::ostream& out) const
 		if (req_el.at("type").AsString() == "Stop")
 		{
 			add_stop(req_el, req_id);			
+		}
+		if (req_el.at("type").AsString() == "Route")
+		{
+			add_route(req_el, req_id);
 		}
 	};
 	
@@ -199,6 +250,13 @@ void JsonReader::GetRenderSettings(renderer::MapRenderer& map_rend)
 
 	ParseMap(doc_.GetRoot().AsDict().at("render_settings").AsDict(), set_renders);
 	map_rend.PutRenderSettings(rend_sets);
+}
+
+rout::TransportRouter JsonReader::GetRoutSettings(const catalogue::TransportCatalogue& cat)
+{
+	const Dict& req = doc_.GetRoot().AsDict().at("routing_settings").AsDict();
+	return rout::TransportRouter(cat, req.at("bus_wait_time").AsInt(), 
+		req.at("bus_velocity").AsDouble());
 }
 
 svg::Color JsonReader::ParseColor(const Node& node) const

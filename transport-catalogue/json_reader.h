@@ -4,6 +4,7 @@
 #include "map_renderer.h"
 #include "request_handler.h"
 #include "json_builder.h"
+#include "transport_router.h"
 
 using namespace json;
 class JsonReader
@@ -14,7 +15,7 @@ public:
 	void LoadDB(catalogue::TransportCatalogue& cat);
 	void PrintDB(const RequestHandler& handler, std::ostream& out) const;
 	void GetRenderSettings(renderer::MapRenderer& map_rend);
-
+	rout::TransportRouter GetRoutSettings(const catalogue::TransportCatalogue& cat);
 private:	
 	template<typename F>
 	void ParseArrayMaps(const Array& array, F func) const

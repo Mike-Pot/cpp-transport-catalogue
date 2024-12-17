@@ -19,6 +19,20 @@ std::optional<const catalogue::ROUTES*> RequestHandler::GetBusesWithStop(const s
 	}
 }
 
+std::optional<catalogue::IDEAL_ROUTE> RequestHandler::GetIdealRoute(const std::string& stop_from, const std::string& stop_to) const
+{
+	auto from = db_.GetStopInfo(stop_from);
+	auto to = db_.GetStopInfo(stop_to);
+	if (from && to)
+	{
+		return transport_router_.GetRoute((*from)->id, (*to)->id);
+	}
+	else
+	{
+		return std::nullopt;
+	}
+}
+
 svg::Document RequestHandler::RenderMap() const
 {
 	using namespace catalogue;

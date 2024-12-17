@@ -3,9 +3,10 @@ namespace catalogue
 {
 	void TransportCatalogue::AddStop(const std::string& stop_name, geo::Coordinates coor)
 	{
-		stops_.push_back({ stop_name,coor });
+		stops_.push_back({ stop_name,coor,stop_id });
 		stop_name_key_.insert({ stops_.back().name, &stops_.back() });
-		stops_routes_.insert({ &stops_.back(),{} });
+		stops_routes_.insert({ &stops_.back(),{} });	
+		stop_id += 2;
 	}
 
 	void TransportCatalogue::AddStopsDist(const std::string& stop_from, const std::string& stop_to, double dist)
@@ -48,7 +49,12 @@ namespace catalogue
 		return GetInfo(stop_dist_, stops);
 	}
 
-	BUSES TransportCatalogue::GetAllBuses(bool not_empty = false) const
+	size_t TransportCatalogue::GetStopCount() const
+	{
+		return stop_id;
+	}
+
+	BUSES TransportCatalogue::GetAllBuses(bool not_empty) const
 	{
 		BUSES buses;
 		for (auto bus : bus_route_key_)
@@ -61,7 +67,7 @@ namespace catalogue
 		return buses;
 	}
 
-	STOPS TransportCatalogue::GetAllStops(bool not_empty = false) const
+	STOPS TransportCatalogue::GetAllStops(bool not_empty) const
 	{
 		STOPS stops;
 		for (auto stop : stop_name_key_)
